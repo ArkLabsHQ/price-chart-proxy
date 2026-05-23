@@ -1,22 +1,20 @@
-interface Env {}
+import { Env, Periods } from './types'
+import { getDataForPeriod, periodNeedsUpdate, updateDataForPeriod } from './kv'
+
 export default {
-	async fetch(request, env, ctx): Promise<Response> {
-		const url = "https://jsonplaceholder.typicode.com/todos/1";
+  async fetch(request, env): Promise<Response> {
+    const period = extractPeriodFromRequest(request)
+    const data = (await periodNeedsUpdate(env, period))
+      ? await updateDataForPeriod(env, period)
+      : await getDataForPeriod(env, period)
+    const options = { headers: { 'content-type': 'application/json' } }
+    const result = data ?? { error: 'No data available' }
+    return new Response(JSON.stringify(result), options)
+  },
+} satisfies ExportedHandler<Env>
 
-		// gatherResponse returns both content-type & response body as a string
-		async function gatherResponse(response) {
-			const { headers } = response;
-			const contentType = headers.get("content-type") || "";
-			if (contentType.includes("application/json")) {
-				return { contentType, result: JSON.stringify(await response.json()) };
-			}
-			return { contentType, result: response.text() };
-		}
-
-		const response = await fetch(url);
-		const { contentType, result } = await gatherResponse(response);
-
-		const options = { headers: { "content-type": contentType } };
-		return new Response(result, options);
-	},
-} satisfies ExportedHandler<Env>;
+const extractPeriodFromRequest = (request: Request): Periods => {
+  const url = new URL(request.url)
+  const period = url.searchParams.get('period')
+  return (period as Periods) ?? Periods.oneDay
+}

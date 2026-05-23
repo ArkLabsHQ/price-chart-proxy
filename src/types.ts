@@ -1,0 +1,19 @@
+export interface Env {
+  fetch_json_kv: KVNamespace
+}
+
+export type LivelinePoint = {
+  date: number
+  value: number
+}
+
+export type LivelineData = LivelinePoint[]
+
+export enum Periods {
+  oneHour = 'oneHour',
+  oneDay = 'oneDay',
+  oneWeek = 'oneWeek',
+  oneMonth = 'oneMonth',
+  oneYear = 'oneYear',
+  all = 'all',
+}
