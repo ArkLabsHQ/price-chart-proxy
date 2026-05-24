@@ -4,9 +4,10 @@ import { getDataForPeriod, periodNeedsUpdate, updateDataForPeriod } from './kv'
 export default {
   async fetch(request, env): Promise<Response> {
     const period = extractPeriodFromRequest(request)
-    const data = (await periodNeedsUpdate(env, period))
-      ? await updateDataForPeriod(env, period)
-      : await getDataForPeriod(env, period)
+    const data =
+      (await periodNeedsUpdate(env, period)) || true
+        ? await updateDataForPeriod(env, period)
+        : await getDataForPeriod(env, period)
     const options = { headers: { 'content-type': 'application/json' } }
     const result = data ?? { error: 'No data available' }
     return new Response(JSON.stringify(result), options)

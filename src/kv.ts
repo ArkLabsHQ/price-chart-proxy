@@ -1,4 +1,4 @@
-import { fetchDataForPeriod } from './coinbase'
+import { fetchDataForPeriod } from './fetcher'
 import { Env, LivelineData, Periods } from './types'
 
 // This file contains functions to interact with the KV storage for caching the fetched data
