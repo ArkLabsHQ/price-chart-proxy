@@ -67,7 +67,7 @@ const fetchLastHourData = async (fiat: Fiats): Promise<LivelineData> => {
   const granularity = Granularities.max
   const startTime = new Date(Date.now() - oneHour)
   const data = await getData(days, granularity, fiat)
-  return data.filter((point) => point.date > startTime.getTime())
+  return data.filter((point) => point.time > startTime.getTime())
 }
 
 /**
@@ -80,7 +80,7 @@ const fetchLastDayData = async (fiat: Fiats): Promise<LivelineData> => {
   const granularity = Granularities.hourly
   const startTime = new Date(Date.now() - oneDay)
   const data = await getData(days, granularity, fiat)
-  return data.filter((point) => point.date > startTime.getTime())
+  return data.filter((point) => point.time > startTime.getTime())
 }
 
 /**
@@ -93,7 +93,7 @@ const fetchLastWeekData = async (fiat: Fiats): Promise<LivelineData> => {
   const granularity = Granularities.hourly
   const startTime = new Date(Date.now() - oneWeek)
   const data = await getData(days, granularity, fiat)
-  return data.filter((point) => point.date > startTime.getTime())
+  return data.filter((point) => point.time > startTime.getTime())
 }
 
 /**
@@ -106,7 +106,7 @@ const fetchLastMonthData = async (fiat: Fiats): Promise<LivelineData> => {
   const oneMonth = 30 * 24 * 60 * 60 * 1000
   const startTime = new Date(Date.now() - oneMonth)
   const data = await getData(days, granularity, fiat)
-  return data.filter((point) => point.date > startTime.getTime())
+  return data.filter((point) => point.time > startTime.getTime())
 }
 
 /**
@@ -119,7 +119,7 @@ const fetchLastYearData = async (fiat: Fiats): Promise<LivelineData> => {
   const oneYear = 365 * 24 * 60 * 60 * 1000
   const startTime = new Date(Date.now() - oneYear)
   const data = await getData(days, granularity, fiat)
-  return data.filter((point) => point.date > startTime.getTime())
+  return data.filter((point) => point.time > startTime.getTime())
 }
 
 /**
@@ -147,7 +147,7 @@ const getData = async (days: number, granularity: Granularities, fiat: Fiats): P
     throw new Error(`CoinGecko request failed with ${status} ${statusText}: ${body}`)
   }
   const data: CoingeckoResponse = await coingeckoResponse.json()
-  return data.prices.map((item: CoingeckoPoint) => ({ date: ms2secs(item[0]), value: item[1] }))
+  return data.prices.map((item: CoingeckoPoint) => ({ time: ms2secs(item[0]), value: item[1] }))
 }
 
 /**

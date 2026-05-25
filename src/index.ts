@@ -1,17 +1,46 @@
 import { Env, Fiats, Periods } from './types'
 import { getDataForPeriod, periodNeedsUpdate, updateDataForPeriod } from './kv'
 
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type',
+  'Access-Control-Max-Age': '86400',
+}
+
 export default {
   async fetch(request, env): Promise<Response> {
-    const period = extractPeriodFromRequest(request)
-    const fiat = extractFiatFromRequest(request)
-    const data =
-      (await periodNeedsUpdate(env, period, fiat)) || true
-        ? await updateDataForPeriod(env, period, fiat)
-        : await getDataForPeriod(env, period, fiat)
-    const options = { headers: { 'content-type': 'application/json' } }
-    const result = data ?? { error: 'No data available' }
-    return new Response(JSON.stringify(result), options)
+    if (request.method === 'OPTIONS') {
+      return new Response(null, {
+        status: 204,
+        headers: corsHeaders,
+      })
+    }
+
+    try {
+      const period = extractPeriodFromRequest(request)
+      const fiat = extractFiatFromRequest(request)
+      const data =
+        (await periodNeedsUpdate(env, period, fiat)) || true
+          ? await updateDataForPeriod(env, period, fiat)
+          : await getDataForPeriod(env, period, fiat)
+      const result = data ?? { error: 'No data available' }
+      return new Response(JSON.stringify(result), {
+        headers: {
+          ...corsHeaders,
+          'content-type': 'application/json',
+        },
+      })
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Internal server error'
+      return new Response(JSON.stringify({ error: message }), {
+        status: 500,
+        headers: {
+          ...corsHeaders,
+          'content-type': 'application/json',
+        },
+      })
+    }
   },
 } satisfies ExportedHandler<Env>
 

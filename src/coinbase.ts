@@ -149,7 +149,7 @@ const getData = async (start: Date, end: Date, granularity: number, fiat: Fiats)
     throw new Error(`Coinbase request failed with ${status} ${statusText}: ${body}`)
   }
   const data: CoinbaseCandle[] = await coinbaseResponse.json()
-  return data.map((item: CoinbaseCandle) => ({ date: item[0], value: item[4] }))
+  return data.map((item: CoinbaseCandle) => ({ time: item[0], value: item[4] }))
 }
 
 /**

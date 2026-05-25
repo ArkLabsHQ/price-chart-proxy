@@ -12,7 +12,7 @@ export enum Fiats {
 }
 
 export type LivelinePoint = {
-  date: number
+  time: number
   value: number
 }
 
