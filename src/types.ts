@@ -2,6 +2,15 @@ export interface Env {
   fetch_json_kv: KVNamespace
 }
 
+export enum Fiats {
+  EUR = 'EUR',
+  USD = 'USD',
+  CHF = 'CHF',
+  JPY = 'JPY',
+  GBP = 'GBP',
+  CNY = 'CNY',
+}
+
 export type LivelinePoint = {
   date: number
   value: number

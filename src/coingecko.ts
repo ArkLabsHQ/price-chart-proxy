@@ -1,4 +1,4 @@
-import { LivelineData, Periods } from './types'
+import { Fiats, LivelineData, Periods } from './types'
 import { ms2secs } from './utils'
 
 /**
@@ -24,21 +24,13 @@ enum Granularities {
 }
 
 /**
- * Generates the URL for fetching historical price data from the Coingecko API.
- * @param start The start date for the data range.
- * @param end The end date for the data range.
- * @param granularity The granularity of the data in seconds.
- * @returns The URL for the Coingecko API request.
+ * Coingecko supports all wallet currencies, so we return true for any fiat.
+ * The Coinbase API will be the one throwing an error if the fiat is not supported.
+ * @param fiat The fiat currency to check.
+ * @returns True if the fiat currency is supported, false otherwise.
  */
-const getUrl = (days: number, granularity: Granularities) => {
-  const host = 'https://api.coingecko.com'
-  const path = '/api/v3/coins/bitcoin/market_chart'
-  const params = new URLSearchParams({
-    vs_currency: 'usd',
-    days: days.toString(),
-    ...(granularity !== Granularities.max && { interval: granularity }),
-  })
-  return `${host}${path}?${params.toString()}`
+export const isSupportedFiat = (fiat: string): fiat is Fiats => {
+  return true
 }
 
 /**
@@ -46,20 +38,20 @@ const getUrl = (days: number, granularity: Granularities) => {
  * @param period The period for which to fetch data.
  * @returns A promise that resolves to the historical price data for the given period.
  */
-export const fetchDataForPeriod = async (period: Periods): Promise<LivelineData> => {
+export const fetchDataForPeriod = async (period: Periods, fiat: Fiats): Promise<LivelineData> => {
   switch (period) {
     case Periods.oneHour:
-      return await fetchLastHourData()
+      return await fetchLastHourData(fiat)
     case Periods.oneDay:
-      return await fetchLastDayData()
+      return await fetchLastDayData(fiat)
     case Periods.oneWeek:
-      return await fetchLastWeekData()
+      return await fetchLastWeekData(fiat)
     case Periods.oneMonth:
-      return await fetchLastMonthData()
+      return await fetchLastMonthData(fiat)
     case Periods.oneYear:
-      return await fetchLastYearData()
+      return await fetchLastYearData(fiat)
     case Periods.all:
-      return await fetchAllData()
+      return await fetchAllData(fiat)
     default:
       throw new Error(`Unsupported period: ${period}`)
   }
@@ -69,12 +61,12 @@ export const fetchDataForPeriod = async (period: Periods): Promise<LivelineData>
  * Fetches the historical price data for the last hour from the Coingecko API with minute granularity.
  * @returns A promise that resolves to the historical price data for the last hour.
  */
-const fetchLastHourData = async (): Promise<LivelineData> => {
+const fetchLastHourData = async (fiat: Fiats): Promise<LivelineData> => {
   const days = 1
   const oneHour = 60 * 60 * 1000
   const granularity = Granularities.max
   const startTime = new Date(Date.now() - oneHour)
-  const data = await getData(days, granularity)
+  const data = await getData(days, granularity, fiat)
   return data.filter((point) => point.date > startTime.getTime())
 }
 
@@ -82,12 +74,12 @@ const fetchLastHourData = async (): Promise<LivelineData> => {
  * Fetches the historical price data for the last day from the Coingecko API with hour granularity.
  * @returns A promise that resolves to the historical price data for the last day.
  */
-const fetchLastDayData = async (): Promise<LivelineData> => {
+const fetchLastDayData = async (fiat: Fiats): Promise<LivelineData> => {
   const days = 1
   const oneDay = 24 * 60 * 60 * 1000
   const granularity = Granularities.hourly
   const startTime = new Date(Date.now() - oneDay)
-  const data = await getData(days, granularity)
+  const data = await getData(days, granularity, fiat)
   return data.filter((point) => point.date > startTime.getTime())
 }
 
@@ -95,12 +87,12 @@ const fetchLastDayData = async (): Promise<LivelineData> => {
  * Fetches the historical price data for the last week from the Coingecko API with hour granularity.
  * @returns A promise that resolves to the historical price data for the last week.
  */
-const fetchLastWeekData = async (): Promise<LivelineData> => {
+const fetchLastWeekData = async (fiat: Fiats): Promise<LivelineData> => {
   const days = 7
   const oneWeek = 7 * 24 * 60 * 60 * 1000
   const granularity = Granularities.hourly
   const startTime = new Date(Date.now() - oneWeek)
-  const data = await getData(days, granularity)
+  const data = await getData(days, granularity, fiat)
   return data.filter((point) => point.date > startTime.getTime())
 }
 
@@ -108,12 +100,12 @@ const fetchLastWeekData = async (): Promise<LivelineData> => {
  * Fetches the historical price data for the last month from the Coingecko API with daily granularity.
  * @returns A promise that resolves to the historical price data for the last month.
  */
-const fetchLastMonthData = async (): Promise<LivelineData> => {
+const fetchLastMonthData = async (fiat: Fiats): Promise<LivelineData> => {
   const days = 30
   const granularity = Granularities.daily
   const oneMonth = 30 * 24 * 60 * 60 * 1000
   const startTime = new Date(Date.now() - oneMonth)
-  const data = await getData(days, granularity)
+  const data = await getData(days, granularity, fiat)
   return data.filter((point) => point.date > startTime.getTime())
 }
 
@@ -121,12 +113,12 @@ const fetchLastMonthData = async (): Promise<LivelineData> => {
  * Fetches the historical price data for the last year from the Coingecko API with daily granularity
  * @returns A promise that resolves to the historical price data for the last year.
  */
-const fetchLastYearData = async (): Promise<LivelineData> => {
+const fetchLastYearData = async (fiat: Fiats): Promise<LivelineData> => {
   const days = 365
   const granularity = Granularities.daily
   const oneYear = 365 * 24 * 60 * 60 * 1000
   const startTime = new Date(Date.now() - oneYear)
-  const data = await getData(days, granularity)
+  const data = await getData(days, granularity, fiat)
   return data.filter((point) => point.date > startTime.getTime())
 }
 
@@ -134,8 +126,8 @@ const fetchLastYearData = async (): Promise<LivelineData> => {
  * Fetches all historical price data from the Coingecko API starting from the first day until now
  * @returns A promise that resolves to the historical price data for all periods.
  */
-const fetchAllData = async (): Promise<LivelineData> => {
-  return fetchLastYearData() // Coingecko free tier only allows a max of 365 days of data
+const fetchAllData = async (fiat: Fiats): Promise<LivelineData> => {
+  return fetchLastYearData(fiat) // Coingecko free tier only allows a max of 365 days of data
 }
 
 /**
@@ -145,8 +137,8 @@ const fetchAllData = async (): Promise<LivelineData> => {
  * @param granularity The granularity of the data in seconds.
  * @returns A promise that resolves to the historical price data for the given date range.
  */
-const getData = async (days: number, granularity: Granularities): Promise<LivelineData> => {
-  const url = getUrl(days, granularity)
+const getData = async (days: number, granularity: Granularities, fiat: Fiats): Promise<LivelineData> => {
+  const url = getUrl(days, granularity, fiat)
   const ua = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)'
   const coingeckoResponse = await fetch(url, { headers: { 'User-Agent': ua } })
   if (!coingeckoResponse.ok) {
@@ -156,4 +148,22 @@ const getData = async (days: number, granularity: Granularities): Promise<Liveli
   }
   const data: CoingeckoResponse = await coingeckoResponse.json()
   return data.prices.map((item: CoingeckoPoint) => ({ date: ms2secs(item[0]), value: item[1] }))
+}
+
+/**
+ * Generates the URL for fetching historical price data from the Coingecko API.
+ * @param start The start date for the data range.
+ * @param end The end date for the data range.
+ * @param granularity The granularity of the data in seconds.
+ * @returns The URL for the Coingecko API request.
+ */
+const getUrl = (days: number, granularity: Granularities, fiat: Fiats) => {
+  const host = 'https://api.coingecko.com'
+  const path = '/api/v3/coins/bitcoin/market_chart'
+  const params = new URLSearchParams({
+    days: days.toString(),
+    vs_currency: fiat.toLowerCase(),
+    ...(granularity !== Granularities.max && { interval: granularity }),
+  })
+  return `${host}${path}?${params.toString()}`
 }
