@@ -144,6 +144,7 @@ const getData = async (days: number, granularity: Granularities, fiat: Fiats): P
   if (!coingeckoResponse.ok) {
     const body = await coingeckoResponse.text()
     const { status, statusText } = coingeckoResponse
+    console.error(`CoinGecko request failed with ${status} ${statusText}: ${body}`)
     throw new Error(`CoinGecko request failed with ${status} ${statusText}: ${body}`)
   }
   const data: CoingeckoResponse = await coingeckoResponse.json()

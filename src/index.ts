@@ -20,10 +20,9 @@ export default {
     try {
       const period = extractPeriodFromRequest(request)
       const fiat = extractFiatFromRequest(request)
-      const data =
-        (await periodNeedsUpdate(env, period, fiat)) || true
-          ? await updateDataForPeriod(env, period, fiat)
-          : await getDataForPeriod(env, period, fiat)
+      const data = (await periodNeedsUpdate(env, period, fiat))
+        ? await updateDataForPeriod(env, period, fiat)
+        : await getDataForPeriod(env, period, fiat)
       const result = data ?? { error: 'No data available' }
       return new Response(JSON.stringify(result), {
         headers: {
