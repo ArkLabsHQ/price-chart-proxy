@@ -133,6 +133,7 @@ const fetchAllData = async (fiat: Fiats): Promise<LivelineData> => {
 
 /**
  * Fetches historical price data from the Coinbase API for the given date range and granularity.
+ * Data is reversed to be in chronological order (oldest first) before being returned.
  * @param start The start date for the data range.
  * @param end The end date for the data range.
  * @param granularity The granularity of the data in seconds.
@@ -150,7 +151,7 @@ const getData = async (start: Date, end: Date, granularity: number, fiat: Fiats)
     throw new Error(`Coinbase request failed with ${status} ${statusText}: ${body}`)
   }
   const data: CoinbaseCandle[] = await coinbaseResponse.json()
-  return data.map((item: CoinbaseCandle) => ({ time: item[0], value: item[4] }))
+  return data.map((item: CoinbaseCandle) => ({ time: item[0], value: item[4] })).reverse()
 }
 
 /**

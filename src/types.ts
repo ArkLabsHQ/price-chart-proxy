@@ -18,6 +18,12 @@ export type LivelinePoint = {
 
 export type LivelineData = LivelinePoint[]
 
+export interface KVData {
+  data: LivelineData
+  when: number
+  from: string
+}
+
 export enum Periods {
   oneHour = 'oneHour',
   oneDay = 'oneDay',

@@ -1,7 +1,14 @@
 import { fetchDataForPeriod } from './fetcher'
-import { Env, Fiats, LivelineData, Periods } from './types'
+import { Env, Fiats, KVData, LivelineData, Periods } from './types'
 
-// This file contains functions to interact with the KV storage for caching the fetched data
+/**
+ * This file contains functions to interact with the KV storage for caching the fetched data.
+ */
+
+export const resetKVStorage = async (env: Env): Promise<void> => {
+  const keys = await env.fetch_json_kv.list()
+  await Promise.all(keys.keys.map((key) => env.fetch_json_kv.delete(key.name)))
+}
 
 /**
  * Checks if the cached data for the given period needs to be updated based on the last update timestamp.
@@ -11,10 +18,9 @@ import { Env, Fiats, LivelineData, Periods } from './types'
  * @returns boolean
  */
 export const periodNeedsUpdate = async (env: Env, period: Periods, fiat: Fiats): Promise<boolean> => {
-  const msTimestamp = await env.fetch_json_kv.get(lastKey(period, fiat))
-  if (!msTimestamp) return true
-  const lastUpdated = parseInt(msTimestamp, 10)
-  return Date.now() - lastUpdated > getMaxAgeAllowed(period)
+  const data = await loadData(env, getKey(period, fiat))
+  if (!data) return true
+  return Date.now() - data.when > getMaxAgeAllowed(period)
 }
 
 /**
@@ -25,11 +31,10 @@ export const periodNeedsUpdate = async (env: Env, period: Periods, fiat: Fiats):
  * @param fiat The fiat currency for which to check if the cached data needs to be updated.
  * @returns The updated data for the given period.
  */
-export const updateDataForPeriod = async (env: Env, period: Periods, fiat: Fiats): Promise<LivelineData> => {
-  const data = await fetchDataForPeriod(period, fiat)
-  await env.fetch_json_kv.put(dataKey(period, fiat), JSON.stringify(data))
-  await env.fetch_json_kv.put(lastKey(period, fiat), Date.now().toString())
-  return data
+export const updateDataForPeriod = async (env: Env, period: Periods, fiat: Fiats): Promise<KVData> => {
+  const kvData = await fetchDataForPeriod(period, fiat)
+  await saveData(env, getKey(period, fiat), kvData)
+  return kvData
 }
 
 /**
@@ -39,9 +44,9 @@ export const updateDataForPeriod = async (env: Env, period: Periods, fiat: Fiats
  * @param fiat The fiat currency for which to retrieve the cached data.
  * @returns The cached data for the given period, or null if not found.
  */
-export const getDataForPeriod = async (env: Env, period: Periods, fiat: Fiats): Promise<LivelineData | null> => {
-  const data = await env.fetch_json_kv.get(dataKey(period, fiat))
-  return data ? JSON.parse(data) : null
+export const getDataForPeriod = async (env: Env, period: Periods, fiat: Fiats): Promise<KVData | null> => {
+  const data = await loadData(env, getKey(period, fiat))
+  return data ? data : null
 }
 
 /**
@@ -55,6 +60,31 @@ const getMaxAgeAllowed = (period: Periods): number => {
   return 24 * 60 * 60 * 1000 // 24 hours for all other periods
 }
 
-// Helper functions to generate the keys for storing data and last update timestamps in the KV storage
-const dataKey = (period: Periods, fiat: Fiats) => `data-${period}-${fiat}`
-const lastKey = (period: Periods, fiat: Fiats) => `last-${period}-${fiat}`
+/**
+ * Generates a key for storing data in the KV storage based on the period and fiat currency.
+ * @param period The period for which to generate the key.
+ * @param fiat The fiat currency for which to generate the key.
+ * @returns The generated key.
+ */
+const getKey = (period: Periods, fiat: Fiats) => `${period}-${fiat}`
+
+/**
+ * Loads data from the KV storage for the given key.
+ * @param env The environment object containing the KV storage.
+ * @param key The key for which to load the data.
+ * @returns The loaded data, or null if not found.
+ */
+const loadData = async (env: Env, key: string): Promise<KVData | null> => {
+  const data = await env.fetch_json_kv.get(key)
+  return data ? (JSON.parse(data) as KVData) : null
+}
+
+/**
+ * Saves data to the KV storage for the given key.
+ * @param env The environment object containing the KV storage.
+ * @param key The key for which to save the data.
+ * @param data The data to be saved.
+ */
+const saveData = async (env: Env, key: string, data: KVData): Promise<void> => {
+  await env.fetch_json_kv.put(key, JSON.stringify(data))
+}
