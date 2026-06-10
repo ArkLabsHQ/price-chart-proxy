@@ -1,5 +1,5 @@
 export interface Env {
-  fetch_json_kv: KVNamespace
+  price_chart_proxy_kv: KVNamespace
 }
 
 export enum Fiats {

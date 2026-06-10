@@ -1,8 +1,8 @@
-# fetch-json Worker
+# price-chart-proxy Worker
 
 ## Overview
 
-`fetch-json` is a Cloudflare Worker that serves historical Bitcoin price time series as JSON.
+`price-chart-proxy` is a Cloudflare Worker that serves historical Bitcoin price time series as JSON.
 It is designed as a lightweight data API with built-in caching in Cloudflare KV and automatic
 provider fallback.
 
@@ -207,7 +207,7 @@ Configuration lives in `wrangler.jsonc`, including:
 - Worker name and entrypoint,
 - compatibility date,
 - observability settings,
-- KV namespace binding (`fetch_json_kv`).
+- KV namespace binding (`price_chart_proxy_kv`).
 
 ## Design Notes And Trade-Offs
 

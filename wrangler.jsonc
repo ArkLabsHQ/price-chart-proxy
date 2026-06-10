@@ -4,7 +4,7 @@
  */
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "fetch-json",
+  "name": "price-chart-proxy",
   "main": "src/index.ts",
   "compatibility_date": "2025-04-03",
   "observability": {
@@ -19,8 +19,8 @@
   },
   "kv_namespaces": [
     {
-      "binding": "fetch_json_kv",
-      "id": "0e91ac66f0e742d0bd4759b9c43aeb82",
+      "binding": "price_chart_proxy_kv",
+      "id": "affd5f55da3e4a86b1a4f3b32f5f9de7",
     },
   ],
   /**

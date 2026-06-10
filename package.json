@@ -1,5 +1,5 @@
 {
-	"name": "fetch-json",
+	"name": "price-chart-proxy",
 	"version": "0.0.0",
 	"private": true,
 	"scripts": {
