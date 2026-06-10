@@ -19,7 +19,7 @@
   },
   "kv_namespaces": [
     {
-      "binding": "fetch_json_kv",
+      "binding": "price_chart_proxy_kv",
       "id": "affd5f55da3e4a86b1a4f3b32f5f9de7",
     },
   ],

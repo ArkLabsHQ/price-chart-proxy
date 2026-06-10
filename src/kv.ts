@@ -6,8 +6,8 @@ import { Env, Fiats, KVData, LivelineData, Periods } from './types'
  */
 
 export const resetKVStorage = async (env: Env): Promise<void> => {
-  const keys = await env.fetch_json_kv.list()
-  await Promise.all(keys.keys.map((key) => env.fetch_json_kv.delete(key.name)))
+  const keys = await env.price_chart_proxy_kv.list()
+  await Promise.all(keys.keys.map((key) => env.price_chart_proxy_kv.delete(key.name)))
 }
 
 /**
@@ -75,7 +75,7 @@ const getKey = (period: Periods, fiat: Fiats) => `${period}-${fiat}`
  * @returns The loaded data, or null if not found.
  */
 const loadData = async (env: Env, key: string): Promise<KVData | null> => {
-  const data = await env.fetch_json_kv.get(key)
+  const data = await env.price_chart_proxy_kv.get(key)
   return data ? (JSON.parse(data) as KVData) : null
 }
 
@@ -86,5 +86,5 @@ const loadData = async (env: Env, key: string): Promise<KVData | null> => {
  * @param data The data to be saved.
  */
 const saveData = async (env: Env, key: string, data: KVData): Promise<void> => {
-  await env.fetch_json_kv.put(key, JSON.stringify(data))
+  await env.price_chart_proxy_kv.put(key, JSON.stringify(data))
 }
